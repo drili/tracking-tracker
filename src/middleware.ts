@@ -3,9 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
-    console.log("::: MIDDLEWARE")
     const token = await getToken({ req: request, secret: process.env.NEXTAUTH_SECRET })
-    console.log({token})
 
     const isAuthPage = request.nextUrl.pathname.startsWith("/login")
     

@@ -1,5 +1,7 @@
 import GoogleProvider from "next-auth/providers/google";
 import { NextAuthOptions } from "next-auth";
+import { connectDB } from "@/lib/db";
+import { User } from "@/lib/models/user";
 
 export const authOptions: NextAuthOptions = {
     providers: [
@@ -8,9 +10,32 @@ export const authOptions: NextAuthOptions = {
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
         })
     ],
-    secret: process.env.NEXTAUTH_SECRET,
     pages: {
         signIn: "/login"
     },
-    debug: true
+    debug: true,
+    callbacks: {
+        async signIn({ user }) {
+            await connectDB()
+
+            const existingUser = await User.findOne({ email: user.email })
+
+            if (!existingUser) {
+                await User.create({
+                    name: user.name,
+                    email: user.email,
+                    image: user.image,
+                })
+                console.log("::: ✅ Created new user:", user.email)
+            } else {
+                console.log("::: 🔁 User already exists:", user.email)
+            }
+
+            return true
+        }
+    },
+    session: {
+        strategy: "jwt",
+    },
+    secret: process.env.NEXTAUTH_SECRET,
 }
