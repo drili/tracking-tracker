@@ -55,7 +55,7 @@ export default function TrackedSitesPage() {
                             value={measurementId}
                             onChange={(e) => setMeasurementId(e.target.value)}
                         />
-                        <Button className="w-full">
+                        <Button className="w-full" onClick={handleAddSite}>
                             Add Site
                         </Button>
                     </div>
