@@ -1,4 +1,6 @@
+import { Button } from "@/components/ui/button";
 import Image from "next/image";
+import Link from 'next/link'
 
 export default function Home() {
     return (
@@ -14,6 +16,11 @@ export default function Home() {
                 />
                 <h1 className="text-5xl font-extrabold font-[family-name:var(--font-geist-mono)] uppercase tracking-wider">Tracking Tracker</h1>
 
+                <Link href="/login">
+                    <Button>
+                    Login now
+                    </Button>
+                </Link>
             </main>
         </div>
     );
