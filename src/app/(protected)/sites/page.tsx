@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { normalizeUrl, isValidGA4Id } from "@/lib/utils"
 
 interface TrackedSite {
     _id: string
@@ -18,10 +19,9 @@ export default function TrackedSitesPage() {
     const { data: session, status }: { data: any; status: "authenticated" | "unauthenticated" | "loading" } = useSession()
 
     const [url, setUrl] = useState("")
-    const [measurementId, setMeasurementId] = useState("")
     const [sites, setSites] = useState<TrackedSite[]>([])
     const [ga4, setGa4] = useState("")
-    const router = useRouter()
+    const [error, setError] = useState("")
 
     const fetchSites = async () => {
         const res = await fetch("/api/sites")
@@ -39,6 +39,19 @@ export default function TrackedSitesPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+
+        const normalized = normalizeUrl(url)
+        const ga4Valid = isValidGA4Id(ga4)
+
+        if (!normalized) {
+            setError("Please enter a valid URL")
+            return
+        }
+
+        if (!ga4Valid) {
+            setError("Please enter a valid GA4 Measurement ID (e.g. G-XXXXXX")
+            return
+        }
 
         const res = await fetch("/api/sites", {
             method: "POST",
@@ -93,6 +106,8 @@ export default function TrackedSitesPage() {
                             Add Site
                         </Button>
                     </form>
+
+                    {error && <p className="text-red-500 text-sm">{error}</p>}
 
                     <div className="pt-6 space-y-2">
                         {sites.length === 0 ? (
