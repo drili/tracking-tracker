@@ -13,6 +13,9 @@ interface TrackedSite {
     _id: string
     url: string
     ga4: string
+    isGTMFound?: boolean
+    lastCheckedAt?: string
+    statusMessage?: string
 }
 
 export default function TrackedSitesPage() {
@@ -72,6 +75,21 @@ export default function TrackedSitesPage() {
         await fetchSites()
     }
 
+    const handleCheckGTMConnection = async (siteId: string) => {
+        const res = await fetch(`/api/sites/${siteId}/check`, {
+            method: "POST"
+        })
+
+        if (res.ok) {
+            const updatedSite = await res.json()
+            setSites((prev) => 
+                prev.map((site) => (site._id === siteId ? updatedSite : site))
+            )
+        } else {
+            console.error("::: Check failed")
+        }
+    }
+
     if (status === "loading") {
         return (
             <p>Loading...</p>
@@ -118,9 +136,37 @@ export default function TrackedSitesPage() {
                                     <div>
                                         <p className="font-medium">{site.url}</p>
                                         <p className="text-sm text-muted-foreground">{site.ga4}</p>
+
+                                        <div className="flex flex-col gap-0 mt-5">
+                                            <span
+                                                className={`text-sm font-medium m-0 p-0 ${
+                                                    site.isGTMFound === true
+                                                        ? "text-green-600"
+                                                    : site.isGTMFound === false
+                                                        ? "text-red-600"
+                                                        : "text-gray-600"
+                                                }`}
+                                            >
+                                                {site.isGTMFound === true
+                                                    ? "✅ GTM code found"
+                                                : site.isGTMFound === false
+                                                    ? "❌ GTM not found"
+                                                    : "⏳ Not checked"
+                                                }
+                                            </span>
+
+                                            <span>
+                                                {site.lastCheckedAt && (
+                                                    <span className="text-xs text-muted-foreground m-0 p-0">
+                                                        Last checked: {new Date(site.lastCheckedAt).toLocaleString()}
+                                                    </span>
+                                                )}
+                                            </span>
+                                        </div>
                                     </div>
 
                                     <div className="flex gap-2">
+                                        <Button variant="default" size="sm" onClick={() => handleCheckGTMConnection(site._id)}>Test Connection</Button>
                                         <Button variant="outline" size="sm">Edit</Button>
                                         <Button variant="destructive" size="sm" onClick={() => handleDelete(site._id)}>Delete</Button>
                                     </div>
