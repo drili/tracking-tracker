@@ -145,6 +145,7 @@ export default function TrackedSitesPage() {
                                     <div>
                                         <p className="font-medium">{site.url}</p>
                                         <p className="text-sm text-muted-foreground">{site.ga4}</p>
+                                        <p className="text-sm text-muted-foreground">{site.ga4PropertyId}</p>
 
                                         <div className="flex flex-col gap-0 mt-5">
                                             <span
