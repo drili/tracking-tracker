@@ -29,7 +29,7 @@ export async function POST(request: Request) {
         const response = await analyticsDataClient.properties.runReport({
             property: `properties/${propertyId}`,
             requestBody: {
-                dateRanges: [{ startDate: "7daysAgo", endDate: "today" }],
+                dateRanges: [{ startDate: "yesterday", endDate: "today" }],
                 metrics: [{ name: "activeUsers" }, { name: "sessions" }],
             },
         })

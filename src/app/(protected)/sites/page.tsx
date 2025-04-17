@@ -17,6 +17,7 @@ interface TrackedSite {
     isGTMFound?: boolean
     lastCheckedAt?: string
     statusMessage?: string
+    ga4Data?: any
 }
 
 export default function TrackedSitesPage() {
@@ -31,12 +32,11 @@ export default function TrackedSitesPage() {
     const fetchSites = async () => {
         const res = await fetch("/api/sites")
         const data = await res.json()
-        console.log({data})
+        console.log({ data })
         setSites(data)
     }
 
     useEffect(() => {
-    
         if (status === "authenticated") {
             fetchSites()
         }
@@ -78,6 +78,15 @@ export default function TrackedSitesPage() {
         await fetchSites()
     }
 
+    const handleCheckGA4Data = async (siteId: string, ga4PropertyId: string) => {
+        const data = await fetchGA4Data(ga4PropertyId)
+        setSites((prevSites) =>
+            prevSites.map((site) =>
+                site._id === siteId ? { ...site, ga4Data: data } : site
+            )
+        )
+    }
+
     const handleCheckGTMConnection = async (siteId: string) => {
         const res = await fetch(`/api/sites/${siteId}/check`, {
             method: "POST"
@@ -85,12 +94,23 @@ export default function TrackedSitesPage() {
 
         if (res.ok) {
             const updatedSite = await res.json()
-            setSites((prev) => 
+            setSites((prev) =>
                 prev.map((site) => (site._id === siteId ? updatedSite : site))
             )
         } else {
             console.error("::: Check failed")
         }
+    }
+
+    const fetchGA4Data = async (propertyId: string) => {
+        const res = await fetch("/api/ga4/report", {
+            method: "POST",
+            body: JSON.stringify({ propertyId }),
+        })
+        
+        const data = await res.json()
+        console.log({data})
+        return data
     }
 
     if (status === "loading") {
@@ -117,7 +137,7 @@ export default function TrackedSitesPage() {
                             onChange={(e) => setUrl(e.target.value)}
                             required
                         />
-                        <Input 
+                        <Input
                             placeholder="GA4 Property ID (e.g. 123456789)"
                             value={ga4PropertyId}
                             onChange={(e) => setGa4PropertyId(e.target.value)}
@@ -141,45 +161,58 @@ export default function TrackedSitesPage() {
                             <p className="text-sm text-muted-foreground">No added sites yet.</p>
                         ) : (
                             sites.map((site) => (
-                                <Card key={site._id} className="p-4 flex flex-row justify-between items-center">
-                                    <div>
-                                        <p className="font-medium">{site.url}</p>
-                                        <p className="text-sm text-muted-foreground">{site.ga4}</p>
-                                        <p className="text-sm text-muted-foreground">{site.ga4PropertyId}</p>
+                                <Card key={site._id} className="p-4 flex flex-col justify-between">
+                                    <span className="flex justify-between">
+                                        <div>
+                                            <p className="font-medium">{site.url}</p>
+                                            <p className="text-sm text-muted-foreground">{site.ga4}</p>
+                                            <p className="text-sm text-muted-foreground">{site.ga4PropertyId}</p>
 
-                                        <div className="flex flex-col gap-0 mt-5">
-                                            <span
-                                                className={`text-sm font-medium m-0 p-0 ${
-                                                    site.isGTMFound === true
-                                                        ? "text-green-600"
-                                                    : site.isGTMFound === false
-                                                        ? "text-red-600"
-                                                        : "text-gray-600"
-                                                }`}
-                                            >
-                                                {site.isGTMFound === true
-                                                    ? "✅ GTM code found"
-                                                : site.isGTMFound === false
-                                                    ? "❌ GTM not found"
-                                                    : "⏳ Not checked"
-                                                }
-                                            </span>
+                                            <div className="flex flex-col gap-0 mt-5">
+                                                <span
+                                                    className={`text-sm font-medium m-0 p-0 ${site.isGTMFound === true
+                                                            ? "text-green-600"
+                                                            : site.isGTMFound === false
+                                                                ? "text-red-600"
+                                                                : "text-gray-600"
+                                                        }`}
+                                                >
+                                                    {site.isGTMFound === true
+                                                        ? "✅ GTM code found"
+                                                        : site.isGTMFound === false
+                                                            ? "❌ GTM not found"
+                                                            : "⏳ Not checked"
+                                                    }
+                                                </span>
 
-                                            <span>
-                                                {site.lastCheckedAt && (
-                                                    <span className="text-xs text-muted-foreground m-0 p-0">
-                                                        Last checked: {new Date(site.lastCheckedAt).toLocaleString()}
-                                                    </span>
-                                                )}
-                                            </span>
+                                                <span>
+                                                    {site.lastCheckedAt && (
+                                                        <span className="text-xs text-muted-foreground m-0 p-0">
+                                                            Last checked: {new Date(site.lastCheckedAt).toLocaleString()}
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div className="flex gap-2">
-                                        <Button variant="default" size="sm" onClick={() => handleCheckGTMConnection(site._id)}>Test Connection</Button>
-                                        <Button variant="outline" size="sm">Edit</Button>
-                                        <Button variant="destructive" size="sm" onClick={() => handleDelete(site._id)}>Delete</Button>
-                                    </div>
+                                        <div className="flex gap-2">
+                                            <Button variant="default" size="sm" onClick={() => handleCheckGTMConnection(site._id)}>Test GTM Connection</Button>
+                                            <Button variant="default" size="sm" onClick={() => handleCheckGA4Data(site._id, site.ga4PropertyId)}>Test GA4 Data</Button>
+                                            <Button variant="outline" size="sm">Edit</Button>
+                                            <Button variant="destructive" size="sm" onClick={() => handleDelete(site._id)}>Delete</Button>
+                                        </div>
+                                    </span>
+                                    
+                                    <span>
+                                        {site.ga4Data ? (
+                                            <div>
+                                                <p>Active Users: {site.ga4Data.rows?.[0]?.metricValues?.[0]?.value}</p>
+                                                <p>Sessions: {site.ga4Data.rows?.[0]?.metricValues?.[1]?.value}</p>
+                                            </div>
+                                        ) : (
+                                            <p className="text-xs text-muted-foreground">Run the GA4 connection to see latest data</p>
+                                        )}
+                                    </span>
                                 </Card>
                             ))
                         )}
