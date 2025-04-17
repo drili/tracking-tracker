@@ -13,6 +13,7 @@ interface TrackedSite {
     _id: string
     url: string
     ga4: string
+    ga4PropertyId: string
     isGTMFound?: boolean
     lastCheckedAt?: string
     statusMessage?: string
@@ -24,6 +25,7 @@ export default function TrackedSitesPage() {
     const [url, setUrl] = useState("")
     const [sites, setSites] = useState<TrackedSite[]>([])
     const [ga4, setGa4] = useState("")
+    const [ga4PropertyId, setGa4PropertyId] = useState("")
     const [error, setError] = useState("")
 
     const fetchSites = async () => {
@@ -58,12 +60,13 @@ export default function TrackedSitesPage() {
 
         const res = await fetch("/api/sites", {
             method: "POST",
-            body: JSON.stringify({ url, ga4 })
+            body: JSON.stringify({ url, ga4, ga4PropertyId })
         })
 
         if (res.ok) {
             setUrl("")
             setGa4("")
+            setGa4PropertyId("")
             await fetchSites()
         }
     }
@@ -112,6 +115,12 @@ export default function TrackedSitesPage() {
                             placeholder="https://your-site.com"
                             value={url}
                             onChange={(e) => setUrl(e.target.value)}
+                            required
+                        />
+                        <Input 
+                            placeholder="GA4 Property ID (e.g. 123456789)"
+                            value={ga4PropertyId}
+                            onChange={(e) => setGa4PropertyId(e.target.value)}
                             required
                         />
                         <Input

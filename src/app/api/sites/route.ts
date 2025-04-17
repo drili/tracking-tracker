@@ -12,13 +12,14 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { url, ga4 } = await req.json()
+    const { url, ga4, ga4PropertyId } = await req.json()
     await connectDB()
 
     const site = await TrackedSite.create({
         userId: session.user?.email,
         url,
-        ga4
+        ga4,
+        ga4PropertyId,
     })
 
     return NextResponse.json(site)
