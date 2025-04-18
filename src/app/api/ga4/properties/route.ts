@@ -17,17 +17,15 @@ export async function GET() {
     const analyticsAdmin = google.analyticsadmin({ version: "v1beta", auth })
 
     try {
-        // Step 1: Get accounts the user has access to
         const accountsResponse = await analyticsAdmin.accounts.list()
         const accounts = accountsResponse.data.accounts || []
 
         const allProperties = []
 
-        // Step 2: For each account, list properties
         for (const account of accounts) {
-            const accountId = account.name // "accounts/123456"
+            const accountId = account.name
             const propertiesResponse = await analyticsAdmin.properties.list({
-                filter: `parent:${account.name}`, // Example: "parent:accounts/123456"
+                filter: `parent:${account.name}`,
             })
             const properties = propertiesResponse.data.properties || []
             allProperties.push(...properties)
