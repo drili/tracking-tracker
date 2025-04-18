@@ -8,6 +8,11 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { normalizeUrl, isValidGA4Id } from "@/lib/utils"
+import { fetchGa4Report } from "@/lib/ga4/fetchGa4Report"
+
+interface Props {
+    propertyId: string
+}
 
 interface TrackedSite {
     _id: string
@@ -20,7 +25,7 @@ interface TrackedSite {
     ga4Data?: any
 }
 
-export default function TrackedSitesPage() {
+export default function TrackedSitesPage({ propertyId }: Props) {
     const { data: session, status }: { data: any; status: "authenticated" | "unauthenticated" | "loading" } = useSession()
 
     const [url, setUrl] = useState("")
@@ -79,7 +84,7 @@ export default function TrackedSitesPage() {
     }
 
     const handleCheckGA4Data = async (siteId: string, ga4PropertyId: string) => {
-        const data = await fetchGA4Data(ga4PropertyId)
+        const data = await fetchGa4Report(ga4PropertyId)
         setSites((prevSites) =>
             prevSites.map((site) =>
                 site._id === siteId ? { ...site, ga4Data: data } : site

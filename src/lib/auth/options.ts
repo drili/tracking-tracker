@@ -8,6 +8,11 @@ export const authOptions: NextAuthOptions = {
         GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID!,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+            authorization: {
+                params: {
+                    scope: "openid email profile https://www.googleapis.com/auth/analytics.readonly",
+                },
+            },
         })
     ],
     pages: {
@@ -32,6 +37,22 @@ export const authOptions: NextAuthOptions = {
             }
 
             return true
+        },
+
+        async jwt({ token, account }) {
+            if (account?.provider === "google") {
+                token.accessToken = account.access_token
+            }
+
+            return token
+        },
+
+        async session({ session, token }) {
+            if (token?.accessToken) {
+                session.accessToken = token.accessToken
+            }
+
+            return session
         }
     },
     session: {
